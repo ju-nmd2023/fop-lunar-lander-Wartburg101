@@ -1,11 +1,19 @@
-    let x = innerWidth / 2;
-    let y = innerHeight / 2;
-function rocket(){
+    
+function rocket(x1,y1,angle){
+    translate(x1,y1); 
+    let x = innerWidth/2;
+    let y = innerHeight/2;
+    push();
+    scale(0.2);
+    translate(x-25,y); 
+    rotate(angle);
+    translate(-x-25,-y);
 
+    
     //legs
     stroke(0,0,0);
-    strokeWeight(5);
-    //left leg
+    strokeWeight(5); 
+    //left leg  
     line(x+10,y+90,x-70,y+200);
     strokeWeight(7);
     line(x-70,y+200,x,y+150);
@@ -62,24 +70,82 @@ function rocket(){
     //shadow bottom body
     fill(0,0,0,75);
     rect(x,y-100,25,250);
+    
+    pop();
 }
 
 
-function landingPad(){
+function landingPad(x,y){
 
     stroke(255,255,0);
-    strokeWeight(4);
     
-    quad(x-,y,x+200,y,x+150,y+30,x+50,y+30);
-    fill(100,100,100);
+    strokeWeight(15);
+    line(x-120,y-95,x-120,y+305);
+    line(x+120,y-95,x+120,y+305);
+
+    //crosslines
+    strokeWeight(11);
+    line(x-120,y-95,x+120,y+5);
+    line(x+120,y-95,x-120,y+5);
+
+    line(x+120,y+5,x-120,y+105);
+    line(x-120,y+5,x+120,y+105);
+
+    line(x-120,y+105,x+120,y+205);
+    line(x+120,y+105,x-120,y+205);
+    
+    line(x+120,y+205,x-120,y+305);
+    line(x-120,y+205,x+120,y+305);
+    
+    //platform
+    strokeWeight(15);
+    line(x-135,y-95,x+135,y-95);
 }
-
-
-function draw(){
+    let xPos = 0;
+    let yPos = 0;
+    let mass = 1; //Mass of rocket
+    let xVelocity = 0; //Velocity of rocket in x direction
+    let yVelocity = 0; //Velocity of rocket in y direction
+    let thrust = 0; //If thrust is emitted or not (0-1)
+    let upforce = 0; //Force of rocket thrust towards aimed direction
+    let downforce = 0; //Force of rocket fall
+    let force = 0;
+    let g = 3.711; //Gravity of Mars
+    let a = 0; //Acceleration of rocket
+    let time = 0; //Time since launch
+    let angle = 0; //Angle of rocket   
     
-    let x = 0;
+function draw(){
+    clear();
+    
+    rocket(xPos,yPos,angle);
+    //Thrust
+    if (keyIsDown(32)){ //When spacebar is pressed thrust is accelerated
+        thrust = 1;  
+    }
+    else{
+        thrust = 0; //When spacebar is not pressed thrust is not accelerated
+    } 
+    //Rotation
+    if (keyIsDown(LEFT_ARROW)){ //When left arrow is pressed rocket rotates left
+        angle = angle-Math.PI/180*4;
+    }
+    else if (keyIsDown(RIGHT_ARROW)){ //When right arrow is pressed rocket rotates right
+        angle = angle+Math.PI/180*4;
+    }
+   
 
-    landingPad(100,100);
+    upforce = thrust*mass; //Force acting upwards
+    downforce = -g;
+     //Force acting downwards
+    yVelocity = yVelocity + upforce*Math.cos(angle)+0.1*downforce;  //Total velocity on rocket
+    xVelocity = xVelocity + upforce*Math.sin(angle); //Velocity in x direction
+      
+ 
+    yPos = yPos-yVelocity;
+   
+    xPos = xPos+xVelocity; 
+    
 
 }
 
