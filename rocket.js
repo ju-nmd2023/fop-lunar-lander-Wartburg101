@@ -144,7 +144,7 @@ function draw(){
  
     yPos = yPos-yVelocity;
    
-    xPos = xPos+xVelocity; 
+    xPos = xPos+xVelocity;  
     
 
 }
