@@ -1,14 +1,26 @@
     
-function rocket(x1,y1,angle){
+function rocket(x1,y1,angle,thrust){
     translate(x1,y1); 
     let x = innerWidth/2;
     let y = innerHeight/2;
+
     push();
     scale(0.2);
     translate(x-25,y); 
     rotate(angle);
     translate(-x-25,-y);
 
+    //Fire
+    if (thrust>0){
+        fire(); 
+    }
+    function fire(){
+        noStroke();
+        fill(255,0,0);
+        triangle(x,y+150,x+50,y+150,x+25,y+450);
+        fill(255,255,0);
+        triangle(x+10,y+150,x+40,y+150,x+25,y+350);
+    }
     
     //legs
     stroke(0,0,0);
@@ -70,15 +82,16 @@ function rocket(x1,y1,angle){
     //shadow bottom body
     fill(0,0,0,75);
     rect(x,y-100,25,250);
-    
+   
     pop();
+    
 }
 
 
-function landingPad(x,y){
-
+function landingPad(x,y, width){
+    push();
+    scale(width,0.5);
     stroke(255,255,0);
-    
     strokeWeight(15);
     line(x-120,y-95,x-120,y+305);
     line(x+120,y-95,x+120,y+305);
@@ -100,28 +113,64 @@ function landingPad(x,y){
     //platform
     strokeWeight(15);
     line(x-135,y-95,x+135,y-95);
+    pop();
 }
-    let xPos = 0;
-    let yPos = 0;
+
+function setup(){
+    createCanvas(600,600);
+}
+
+    let xPos = 0; //rocket position in x direction
+    let yPos = 0; //rocket position in y direction
     let mass = 1; //Mass of rocket
     let xVelocity = 0; //Velocity of rocket in x direction
     let yVelocity = 0; //Velocity of rocket in y direction
     let thrust = 0; //If thrust is emitted or not (0-1)
     let upforce = 0; //Force of rocket thrust towards aimed direction
     let downforce = 0; //Force of rocket fall
-    let force = 0;
-    let g = 3.711; //Gravity of Mars
-    let a = 0; //Acceleration of rocket
-    let time = 0; //Time since launch
-    let angle = 0; //Angle of rocket   
+    let g = 2; //Gravity
+    let angle = 0; //Angle of rocket
+    let fire = 0; //If fire is emitted or not (0-1)
+    let platformWidth = 0.5; //Standard width of landing platform
+    let platformPosX = 0;
+    let platformPosY = 0;
+    let state = "start";
     
 function draw(){
     clear();
-    
-    rocket(xPos,yPos,angle);
+
+    if (state == "start"){
+        startScreen();
+    }
+
+    else if (state == "play"){
+        playScreen();
+    }
+
+    else if (state == "end"){
+        endScreen();
+        angle = 0;
+        platformWidth = 0;
+        xPos = 0;
+        yPos = 0;
+    }
+
+}
+
+function startScreen(){
+    background(255,0,0);
+}
+
+function playScreen(){
+    clear();
+    spawnGround();
+    spawnPlatform();
+    rocket(xPos,yPos,angle,thrust);
+
+    //Rocketcontrollers & Physics
     //Thrust
     if (keyIsDown(32)){ //When spacebar is pressed thrust is accelerated
-        thrust = 1;  
+        thrust = 0.5;
     }
     else{
         thrust = 0; //When spacebar is not pressed thrust is not accelerated
@@ -133,20 +182,54 @@ function draw(){
     else if (keyIsDown(RIGHT_ARROW)){ //When right arrow is pressed rocket rotates right
         angle = angle+Math.PI/180*4;
     }
-   
 
     upforce = thrust*mass; //Force acting upwards
     downforce = -g;
      //Force acting downwards
-    yVelocity = yVelocity + upforce*Math.cos(angle)+0.1*downforce;  //Total velocity on rocket
+    yVelocity = yVelocity + upforce*Math.cos(angle)+0.07*downforce;  //Total velocity on rocket
     xVelocity = xVelocity + upforce*Math.sin(angle); //Velocity in x direction
       
- 
     yPos = yPos-yVelocity;
-   
-    xPos = xPos+xVelocity;  
-    
+    xPos = xPos+xVelocity;
 
+
+    //Collisions
+    if (yPos>300){
+        yPos = 300;
+        yVelocity = 0;
+        xVelocity = 0;
+        state = "end";
+    }
+    
+}
+
+function endScreen(){
+    background(0,0,255);
+}
+
+function mousePressed(){
+    if (state == "start"){
+        state = "play";
+        
+    }
+    else if (state == "play"){
+        state = "start";
+    }
+
+    else if(state == "end"){
+        state = "play";
+    }
+}
+
+function spawnGround(){
+    rect(0,400,600,200);
+
+}
+    let platformX = Math.floor(Math.random()*800);
+    let platformy = Math.floor(Math.random()*200);
+function spawnPlatform(){
+    
+    landingPad(platformX,platformy,0.5);
 }
 
 
