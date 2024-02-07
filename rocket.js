@@ -89,37 +89,15 @@ function rocket(x1,y1,angle,thrust){
 
 
 function landingPad(x,y, width){
-    push();
-    scale(width,0.5);
     stroke(255,255,0);
-    strokeWeight(15);
-    line(x-120,y-95,x-120,y+305);
-    line(x+120,y-95,x+120,y+305);
-
-    //crosslines
-    strokeWeight(11);
-    line(x-120,y-95,x+120,y+5);
-    line(x+120,y-95,x-120,y+5);
-
-    line(x+120,y+5,x-120,y+105);
-    line(x-120,y+5,x+120,y+105);
-
-    line(x-120,y+105,x+120,y+205);
-    line(x+120,y+105,x-120,y+205);
-    
-    line(x+120,y+205,x-120,y+305);
-    line(x-120,y+205,x+120,y+305);
-    
-    //platform
-    strokeWeight(15);
-    line(x-135,y-95,x+135,y-95);
-    pop();
+    strokeWeight(5);
+    line(x,y,x+width*100,y);
+    noStroke();
 }
 
 function setup(){
-    createCanvas(600,600);
+    createCanvas(1000,500);
 }
-
     let xPos = 0; //rocket position in x direction
     let yPos = 0; //rocket position in y direction
     let mass = 1; //Mass of rocket
@@ -131,10 +109,11 @@ function setup(){
     let g = 2; //Gravity
     let angle = 0; //Angle of rocket
     let fire = 0; //If fire is emitted or not (0-1)
-    let platformWidth = 0.5; //Standard width of landing platform
+    let platformWidth = 1; //Standard width of landing platform
     let platformPosX = 0;
-    let platformPosY = 0;
+    let platformPosY = 395;
     let state = "start";
+    let win = false;
     
 function draw(){
     clear();
@@ -145,12 +124,13 @@ function draw(){
 
     else if (state == "play"){
         playScreen();
+        
     }
 
     else if (state == "end"){
         endScreen();
         angle = 0;
-        platformWidth = 0;
+        platformWidth = 1;
         xPos = 0;
         yPos = 0;
     }
@@ -166,6 +146,7 @@ function playScreen(){
     spawnGround();
     spawnPlatform();
     rocket(xPos,yPos,angle,thrust);
+    
 
     //Rocketcontrollers & Physics
     //Thrust
@@ -186,50 +167,72 @@ function playScreen(){
     upforce = thrust*mass; //Force acting upwards
     downforce = -g;
      //Force acting downwards
-    yVelocity = yVelocity + upforce*Math.cos(angle)+0.07*downforce;  //Total velocity on rocket
+    yVelocity = yVelocity + upforce*Math.cos(angle) + 0.07*downforce;  //Total velocity on rocket
     xVelocity = xVelocity + upforce*Math.sin(angle); //Velocity in x direction
       
     yPos = yPos-yVelocity;
     xPos = xPos+xVelocity;
 
-
+//landing
+if(xPos<platformPosX && xPos>platformPosX-(platformWidth*100)){
+    if(yPos > 295){
+        console.log("Landed");
+        yVelocity = 0;
+        xVelocity = 0;
+    }  
+}
     //Collisions
     if (yPos>300){
         yPos = 300;
         yVelocity = 0;
         xVelocity = 0;
         state = "end";
+        win = false;
+        console.log(xPos + " " + yPos);
+        console.log(platformPosX + " " +platformPosX+100 + " " + platformPosY);
+    }
+    if (xPos>1000){
+        xPos = 0;
+    }
+    if (xPos<0){
+        xPos = 1000;
     }
     
 }
 
-function endScreen(){
+function endScreen(win){
+    if(win = true){
+
+    }
+    if(win = false){
     background(0,0,255);
 }
 
 function mousePressed(){
     if (state == "start"){
         state = "play";
-        
-    }
-    else if (state == "play"){
-        state = "start";
+        platformPosX = platformX();
+    
     }
 
     else if(state == "end"){
         state = "play";
+        platformPosX = platformX();
     }
 }
 
 function spawnGround(){
-    rect(0,400,600,200);
-
-}
-    let platformX = Math.floor(Math.random()*800);
-    let platformy = Math.floor(Math.random()*200);
-function spawnPlatform(){
+    fill(24, 107, 131);
+    rect(0,400,1000,100);
     
-    landingPad(platformX,platformy,0.5);
+}
+function spawnPlatform(){
+    landingPad(platformPosX,platformPosY,platformWidth);
+    
+}
+function platformX(){
+    let platformX = Math.floor(Math.random()*1000);
+    return platformX;
 }
 
 
