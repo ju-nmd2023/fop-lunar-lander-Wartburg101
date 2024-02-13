@@ -1,8 +1,8 @@
+  
 function rocket(x1, y1, angle, thrust) {
   translate(x1, y1);
   let x = innerWidth / 2;
   let y = innerHeight / 2;
-
   push();
   scale(0.2);
   translate(x - 25, y);
@@ -95,6 +95,7 @@ function landingPad(x, y, width) {
 function setup() {
   createCanvas(1000, 500);
 }
+
 let xPos = 0; //rocket position in x direction
 let yPos = 0; //rocket position in y direction
 let mass = 1; //Mass of rocket
@@ -105,7 +106,7 @@ let upforce = 0; //Force of rocket thrust towards aimed direction
 let downforce = 0; //Force of rocket fall
 let g = 2; //Gravity
 let angle = 0; //Angle of rocket
-let fire = 0; //If fire is emitted or not (0-1)
+
 let fuel = 1000; //Fuel of rocket
 let platformWidth = 1; //Standard width of landing platform
 let platformPosX = 0;
@@ -115,15 +116,14 @@ let state = "start";
 let win = false;
 let score = 0;
 
+
 function draw() {
   clear();
-
   if (state == "start") {
     startScreen();
   } else if (state == "play") {
     playScreen();
   } else if (state == "end") {
-    endScreen();
     angle = 0;
     xPos = 0;
     yPos = 0;
@@ -139,9 +139,9 @@ function playScreen() {
   spawnScenery();
   spawnPlatform();
 
-  textSize(22);
-  text(score, 50, 50);
-  text(fuel, 50, 70);
+  textSize(20);
+  text("Score: " + score, 50, 50);
+  text("Fuel: " + fuel, 50, 70);
 
   rocket(xPos, yPos, angle, thrust);
 
@@ -149,11 +149,11 @@ function playScreen() {
   //Thrust
   if (keyIsDown(32)) {
     //When spacebar is pressed thrust is accelerated
-    
+
     fuel = fuel - 1;
 
-    if(fuel > 0){
-        thrust = 0.5;
+    if (fuel > 0) {
+      thrust = 0.5;
     }
   } else {
     thrust = 0; //When spacebar is not pressed thrust is not accelerated
@@ -179,7 +179,7 @@ function playScreen() {
   //landing
   if (yPos > 300) {
     if (
-      xPos < platformPosX+7 &&
+      xPos < platformPosX + 7 &&
       xPos > platformPosX - 7 - platformWidth * 100 &&
       yVelocity > -1.7 &&
       angle < 0.15 &&
@@ -187,15 +187,17 @@ function playScreen() {
     ) {
       yVelocity = 0;
       xVelocity = 0;
-      state = "end";
+      
       win = true;
-      endScreen(win);
+      setTimeout(endScreen(win), 1500);
+      state = "end";
     } else {
       yVelocity = 0;
       xVelocity = 0;
-      state = "end";
+      
       win = false;
-      endScreen(win);
+      setTimeout(endScreen(win), 1500);
+      state = "end";
     }
   }
   //out of bounds
@@ -206,15 +208,15 @@ function playScreen() {
     xPos = 1000;
   }
   //Out of fuel
-  if(fuel < 0){
+  if (fuel < 0) {
     state = "end";
     win = false;
-    endScreen(win);
+    setTimeout(endScreen(win), 1500);
   }
 }
 
 function endScreen(win) {
-    //Succesful landing
+  //Succesful landing
   if (win == true) {
     background(0, 0, 255);
     fill("white");
@@ -223,16 +225,15 @@ function endScreen(win) {
     console.log("Landed");
     score = score + 1;
     fuel = int(fuel * 0.8);
-    platformWidth = platformWidth*0.95;
+    platformWidth = platformWidth * 0.95;
   }
 
-//Failed Landing
+  //Failed Landing
   if (win == false) {
     background(0, 0, 255);
     fill("white");
     textSize(55);
     text("Landing was a failure!", 250, 250);
-    
     console.log("Crashed");
     score = 0;
     fuel = 1000;
@@ -251,10 +252,13 @@ function mousePressed() {
 }
 
 function spawnScenery() {
-    background(229, 210, 221);
+  background(229, 210, 221);
   fill(24, 107, 131);
   rect(0, 400, 1000, 100);
+  spawnWaves();
+
 }
+
 function spawnPlatform() {
   landingPad(platformPosX, platformPosY, platformWidth);
 }
