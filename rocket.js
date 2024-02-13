@@ -1,8 +1,8 @@
   
+let x = innerWidth / 2;
+let y = innerHeight / 2;
 function rocket(x1, y1, angle, thrust) {
   translate(x1, y1);
-  let x = innerWidth / 2;
-  let y = innerHeight / 2;
   push();
   scale(0.2);
   translate(x - 25, y);
@@ -118,7 +118,7 @@ let score = 0;
 
 
 function draw() {
-  clear();
+  
   if (state == "start") {
     startScreen();
   } else if (state == "play") {
@@ -131,27 +131,33 @@ function draw() {
 }
 
 function startScreen() {
-  background(255, 0, 0);
+  noStroke();
+  spawnScenery();
+  
+  textFont('Courier New', 40);
+  textStyle(BOLD);
+  textAlign(CENTER, BOTTOM);
+  text("SpaceZ Ocean Lander", x, y);
+  textSize(20);
+  textStyle(NORMAL);
+  textAlign(CENTER, TOP);
+  text("Press mouse to start", x, y);
 }
 
 function playScreen() {
   clear();
   spawnScenery();
   spawnPlatform();
-
   textSize(20);
   text("Score: " + score, 50, 50);
   text("Fuel: " + fuel, 50, 70);
-
   rocket(xPos, yPos, angle, thrust);
 
   //Rocketcontrollers & Physics
   //Thrust
   if (keyIsDown(32)) {
     //When spacebar is pressed thrust is accelerated
-
     fuel = fuel - 1;
-
     if (fuel > 0) {
       thrust = 0.5;
     }
@@ -194,7 +200,6 @@ function playScreen() {
     } else {
       yVelocity = 0;
       xVelocity = 0;
-      
       win = false;
       setTimeout(endScreen(win), 1500);
       state = "end";
@@ -226,6 +231,7 @@ function endScreen(win) {
     score = score + 1;
     fuel = int(fuel * 0.8);
     platformWidth = platformWidth * 0.95;
+    console.log(state);
   }
 
   //Failed Landing
@@ -238,6 +244,7 @@ function endScreen(win) {
     score = 0;
     fuel = 1000;
     platformWidth = 1;
+    console.log(state);
   }
 }
 
@@ -254,10 +261,11 @@ function mousePressed() {
 function spawnScenery() {
   background(229, 210, 221);
   fill(24, 107, 131);
+  
   rect(0, 400, 1000, 100);
-  spawnWaves();
-
 }
+
+
 
 function spawnPlatform() {
   landingPad(platformPosX, platformPosY, platformWidth);
