@@ -1,4 +1,3 @@
-  
 let x = innerWidth / 2;
 let y = innerHeight / 2;
 function rocket(x1, y1, angle, thrust) {
@@ -116,9 +115,11 @@ let state = "start";
 let win = false;
 let score = 0;
 
+let waves = [];
 
 function draw() {
-  
+  clear();
+
   if (state == "start") {
     startScreen();
   } else if (state == "play") {
@@ -133,8 +134,7 @@ function draw() {
 function startScreen() {
   noStroke();
   spawnScenery();
-  
-  textFont('Courier New', 40);
+  textFont("Courier New", 40);
   textStyle(BOLD);
   textAlign(CENTER, BOTTOM);
   text("SpaceZ Ocean Lander", x, y);
@@ -151,6 +151,7 @@ function playScreen() {
   textSize(20);
   text("Score: " + score, 50, 50);
   text("Fuel: " + fuel, 50, 70);
+  textAlign(LEFT);
   rocket(xPos, yPos, angle, thrust);
 
   //Rocketcontrollers & Physics
@@ -193,16 +194,15 @@ function playScreen() {
     ) {
       yVelocity = 0;
       xVelocity = 0;
-      
       win = true;
-      setTimeout(endScreen(win), 1500);
       state = "end";
+      setTimeout(endScreen(win), 1500);
     } else {
       yVelocity = 0;
       xVelocity = 0;
       win = false;
-      setTimeout(endScreen(win), 1500);
       state = "end";
+      setTimeout(endScreen(win), 1500);
     }
   }
   //out of bounds
@@ -221,30 +221,29 @@ function playScreen() {
 }
 
 function endScreen(win) {
+
   //Succesful landing
   if (win == true) {
-    background(0, 0, 255);
-    fill("white");
-    textSize(55);
-    text("Landing was a success!", 250, 250);
+    textFont("Courier New", 40);
+    textStyle(BOLD);
+    textAlign(CENTER, BOTTOM);
+    text("Landing was a success!", x, y);
     console.log("Landed");
     score = score + 1;
-    fuel = int(fuel * 0.8);
-    platformWidth = platformWidth * 0.95;
-    console.log(state);
+    fuel = int(fuel * 0.9);
+    platformWidth = platformWidth * 0.9;
   }
 
   //Failed Landing
   if (win == false) {
-    background(0, 0, 255);
-    fill("white");
-    textSize(55);
-    text("Landing was a failure!", 250, 250);
+    textFont("Courier New", 40);
+    textStyle(BOLD);
+    textAlign(CENTER, BOTTOM);
+    text("Landing was a failure!", x, y);
     console.log("Crashed");
     score = 0;
     fuel = 1000;
     platformWidth = 1;
-    console.log(state);
   }
 }
 
@@ -252,20 +251,52 @@ function mousePressed() {
   if (state == "start") {
     state = "play";
     platformPosX = platformX();
+    waves = [];
+    for (let i = 0; i < 7; i++) {
+      waves.push(spawnWaves());
+    }
   } else if (state == "end") {
     state = "play";
     platformPosX = platformX();
+  }
+  waves = [];
+  for (let i = 0; i < 4; i++) {
+    waves.push(spawnWaves());
+  }
+}
+
+//Randomizes each wave spawnposition
+function spawnWaves() {
+  const waveX = Math.random() * 1500;
+  const waveY = 430 + Math.random() * 70;
+  return { x: waveX, y: waveY };
+}
+
+function drawWaves(wave) {
+  push();
+  strokeWeight(4);
+  stroke(255, 255, 255);
+  line(wave.x, wave.y, wave.x + 100, wave.y);
+  stroke(255, 255, 255);
+  pop();
+}
+function updateWaves(wave) {
+  wave.x = wave.x + 1;
+  if (wave.x > 1100) {
+    wave.x = -100;
   }
 }
 
 function spawnScenery() {
   background(229, 210, 221);
   fill(24, 107, 131);
-  
   rect(0, 400, 1000, 100);
+
+  for (let wave of waves) {
+    updateWaves(wave);
+    drawWaves(wave);
+  }
 }
-
-
 
 function spawnPlatform() {
   landingPad(platformPosX, platformPosY, platformWidth);
