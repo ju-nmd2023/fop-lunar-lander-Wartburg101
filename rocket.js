@@ -103,7 +103,7 @@ let yVelocity = 0; //Velocity of rocket in y direction
 let thrust = 0; //If thrust is emitted or not (0-1)
 let upforce = 0; //Force of rocket thrust towards aimed direction
 let downforce = 0; //Force of rocket fall
-let g = 2; //Gravity
+let g = 1.5; //Gravity
 let angle = 0; //Angle of rocket
 
 let fuel = 1000; //Fuel of rocket
@@ -119,16 +119,18 @@ let waves = [];
 
 function draw() {
   clear();
-
   if (state == "start") {
     startScreen();
   } else if (state == "play") {
     playScreen();
   } else if (state == "end") {
+    
+    resultScreen();
     angle = 0;
     xPos = 0;
     yPos = 0;
   }
+
 }
 
 function startScreen() {
@@ -186,8 +188,8 @@ function playScreen() {
   //landing
   if (yPos > 300) {
     if (
-      xPos < platformPosX + 7 &&
-      xPos > platformPosX - 7 - platformWidth * 100 &&
+      xPos < platformPosX + platformWidth * 100 &&
+      xPos > platformPosX - platformWidth * 100 &&
       yVelocity > -1.7 &&
       angle < 0.15 &&
       angle > -0.15
@@ -196,16 +198,16 @@ function playScreen() {
       xVelocity = 0;
       win = true;
       state = "end";
-      setTimeout(endScreen(win), 1500);
+      endScreen(win);
     } else {
       yVelocity = 0;
       xVelocity = 0;
       win = false;
       state = "end";
-      setTimeout(endScreen(win), 1500);
+      endScreen(win);
     }
   }
-  //out of bounds
+  //Out of bounds
   if (xPos > 1000) {
     xPos = 0;
   }
@@ -214,21 +216,31 @@ function playScreen() {
   }
   //Out of fuel
   if (fuel < 0) {
-    state = "end";
     win = false;
-    setTimeout(endScreen(win), 1500);
+    state = "end";
+    endScreen(win);
   }
 }
-
-function endScreen(win) {
-
-  //Succesful landing
+function resultScreen(){
+  spawnScenery();
   if (win == true) {
     textFont("Courier New", 40);
     textStyle(BOLD);
     textAlign(CENTER, BOTTOM);
     text("Landing was a success!", x, y);
     console.log("Landed");
+  }
+  if (win == false) {
+    textFont("Courier New", 40);
+    textStyle(BOLD);
+    textAlign(CENTER, BOTTOM);
+    text("Landing was a failure!", x, y);
+    console.log("Crashed");
+}}
+function endScreen() {
+  //Succesful landing
+  if (win == true) {
+    
     score = score + 1;
     fuel = int(fuel * 0.9);
     platformWidth = platformWidth * 0.9;
@@ -236,6 +248,7 @@ function endScreen(win) {
 
   //Failed Landing
   if (win == false) {
+    
     textFont("Courier New", 40);
     textStyle(BOLD);
     textAlign(CENTER, BOTTOM);
@@ -255,12 +268,16 @@ function mousePressed() {
     for (let i = 0; i < 7; i++) {
       waves.push(spawnWaves());
     }
-  } else if (state == "end") {
+  } else if (state == "end" && win == true) {
     state = "play";
     platformPosX = platformX();
   }
+  else if (state == "end" && win == false) {
+    state = "start";
+    platformPosX = platformX();
+  }
   waves = [];
-  for (let i = 0; i < 4; i++) {
+  for (let i = 0; i < 6; i++) {
     waves.push(spawnWaves());
   }
 }
@@ -269,14 +286,15 @@ function mousePressed() {
 function spawnWaves() {
   const waveX = Math.random() * 1500;
   const waveY = 430 + Math.random() * 70;
-  return { x: waveX, y: waveY };
+  const waveLength = 30 + Math.random()*100;
+  return { x: waveX, y: waveY, length: waveLength};
 }
 
 function drawWaves(wave) {
   push();
   strokeWeight(4);
   stroke(255, 255, 255);
-  line(wave.x, wave.y, wave.x + 100, wave.y);
+  line(wave.x, wave.y, wave.x + wave.length, wave.y);
   stroke(255, 255, 255);
   pop();
 }
@@ -289,6 +307,18 @@ function updateWaves(wave) {
 
 function spawnScenery() {
   background(229, 210, 221);
+  fill(255,255,255);
+  ellipse(50,400,200);
+  ellipse(180,420,180);
+  ellipse(110,380,180);
+
+  ellipse(700,400,250);
+  ellipse(540,420,180);
+  ellipse(590,380,150);
+  ellipse(850,430,250);
+  
+  fill(255,150,90);
+  ellipse(x,y+130,200);
   fill(24, 107, 131);
   rect(0, 400, 1000, 100);
 
