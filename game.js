@@ -1,5 +1,11 @@
 let x = innerWidth / 2;
 let y = innerHeight / 2;
+
+function setup() {
+  createCanvas(windowWidth, 500);
+  frameRate(30);
+}
+
 function rocket(x1, y1, angle, thrust) {
   translate(x1, y1);
   push();
@@ -84,15 +90,11 @@ function rocket(x1, y1, angle, thrust) {
   pop();
 }
 
-function landingPad(x, y, width) {
+function landingPad(posX, posY, width) {
   stroke(255, 255, 0);
   strokeWeight(5);
-  line(x, y, x + width * 100, y);
+  line(posX+width*100, posY, posX -width*100, posY);
   noStroke();
-}
-
-function setup() {
-  createCanvas(1000, 500);
 }
 
 let xPos = 0; //rocket position in x direction
@@ -105,12 +107,10 @@ let upforce = 0; //Force of rocket thrust towards aimed direction
 let downforce = 0; //Force of rocket fall
 let g = 1.5; //Gravity
 let angle = 0; //Angle of rocket
-
 let fuel = 1000; //Fuel of rocket
 let platformWidth = 1; //Standard width of landing platform
 let platformPosX = 0;
 let platformPosY = 395;
-
 let state = "start";
 let win = false;
 let score = 0;
@@ -124,13 +124,34 @@ function draw() {
   } else if (state == "play") {
     playScreen();
   } else if (state == "end") {
-    
     resultScreen();
     angle = 0;
     xPos = 0;
     yPos = 0;
   }
 
+}
+
+function mousePressed() {
+  if (state == "start") {
+    state = "play";
+    platformPosX = platformX();
+    waves = [];
+    for (let i = 0; i < 7; i++) {
+      waves.push(spawnWaves());
+    }
+  } else if (state == "end" && win == true) {
+    state = "play";
+    platformPosX = platformX();
+  }
+  else if (state == "end" && win == false) {
+    state = "start";
+    
+  }
+  waves = [];
+  for (let i = 0; i < 10; i++) {
+    waves.push(spawnWaves());
+  }
 }
 
 function startScreen() {
@@ -153,6 +174,11 @@ function playScreen() {
   textSize(20);
   text("Score: " + score, 50, 50);
   text("Fuel: " + fuel, 50, 70);
+  text("Angle: " + angle, 50, 90);
+  text("Velocity: " + yVelocity, 50, 110);
+  text("xpos: " + xPos, 50, 130);
+  text("platform:" + platformPosX + " " + platformWidth,50,150);
+
   textAlign(LEFT);
   rocket(xPos, yPos, angle, thrust);
 
@@ -186,11 +212,11 @@ function playScreen() {
   xPos = xPos + xVelocity;
 
   //landing
-  if (yPos > 300) {
+  if (yPos > 289) {
     if (
       xPos < platformPosX + platformWidth * 100 &&
       xPos > platformPosX - platformWidth * 100 &&
-      yVelocity > -1.7 &&
+      yVelocity > -3 &&
       angle < 0.15 &&
       angle > -0.15
     ) {
@@ -208,11 +234,11 @@ function playScreen() {
     }
   }
   //Out of bounds
-  if (xPos > 1000) {
+  if (xPos > windowWidth) {
     xPos = 0;
   }
-  if (xPos < -100) {
-    xPos = 1000;
+  if (xPos < -200) {
+    xPos = windowWidth;
   }
   //Out of fuel
   if (fuel < 0) {
@@ -248,7 +274,6 @@ function endScreen() {
 
   //Failed Landing
   if (win == false) {
-    
     textFont("Courier New", 40);
     textStyle(BOLD);
     textAlign(CENTER, BOTTOM);
@@ -260,31 +285,9 @@ function endScreen() {
   }
 }
 
-function mousePressed() {
-  if (state == "start") {
-    state = "play";
-    platformPosX = platformX();
-    waves = [];
-    for (let i = 0; i < 7; i++) {
-      waves.push(spawnWaves());
-    }
-  } else if (state == "end" && win == true) {
-    state = "play";
-    platformPosX = platformX();
-  }
-  else if (state == "end" && win == false) {
-    state = "start";
-    platformPosX = platformX();
-  }
-  waves = [];
-  for (let i = 0; i < 6; i++) {
-    waves.push(spawnWaves());
-  }
-}
-
 //Randomizes each wave spawnposition
 function spawnWaves() {
-  const waveX = Math.random() * 1500;
+  const waveX = Math.random() * 2000;
   const waveY = 430 + Math.random() * 70;
   const waveLength = 30 + Math.random()*100;
   return { x: waveX, y: waveY, length: waveLength};
@@ -300,7 +303,7 @@ function drawWaves(wave) {
 }
 function updateWaves(wave) {
   wave.x = wave.x + 1;
-  if (wave.x > 1100) {
+  if (wave.x > windowWidth + 100) {
     wave.x = -100;
   }
 }
@@ -318,9 +321,9 @@ function spawnScenery() {
   ellipse(850,430,250);
   
   fill(255,150,90);
-  ellipse(x,y+130,200);
+  ellipse(500,400,200);
   fill(24, 107, 131);
-  rect(0, 400, 1000, 100);
+  rect(0, 400, windowWidth, 100);
 
   for (let wave of waves) {
     updateWaves(wave);
@@ -332,6 +335,6 @@ function spawnPlatform() {
   landingPad(platformPosX, platformPosY, platformWidth);
 }
 function platformX() {
-  let platformX = Math.floor(Math.random() * 900);
+  let platformX = Math.floor(Math.random() * 1500);
   return platformX;
 }
