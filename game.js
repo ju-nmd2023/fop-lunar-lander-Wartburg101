@@ -2,7 +2,7 @@ let x = innerWidth / 2;
 let y = innerHeight / 2;
 
 function setup() {
-  createCanvas(windowWidth, 500);
+  createCanvas(windowWidth, windowHeight);
   frameRate(30);
 }
 
@@ -18,6 +18,7 @@ function rocket(x1, y1, angle, thrust) {
   if (thrust > 0) {
     fire();
   }
+
   function fire() {
     noStroke();
     fill(255, 0, 0);
@@ -54,7 +55,6 @@ function rocket(x1, y1, angle, thrust) {
   rect(x, y - 50, 50, 30);
   triangle(x, y + 150, x + 25, y + 150, x, y + 80);
   triangle(x + 50, y + 150, x + 25, y + 150, x + 50, y + 80);
-
   fill(150, 150, 150);
   quad(x, y - 100, x + 50, y - 100, x + 60, y - 110, x - 10, y - 110);
   fill(255, 255, 255);
@@ -63,7 +63,6 @@ function rocket(x1, y1, angle, thrust) {
   rect(x - 10, y - 110, 29, -100);
   fill(255, 255, 255);
   quad(x - 10, y - 210, x + 60, y - 210, x + 50, y - 220, x, y - 220);
-
   stroke(0, 0, 0);
   strokeWeight(4);
   line(x - 5, y - 180, x + 5, y - 180);
@@ -86,18 +85,23 @@ function rocket(x1, y1, angle, thrust) {
   //shadow bottom body
   fill(0, 0, 0, 75);
   rect(x, y - 100, 25, 250);
-
   pop();
 }
 
 function landingPad(posX, posY, width) {
-  stroke(255, 255, 0);
-  strokeWeight(5);
-  line(posX+width*100, posY, posX -width*100, posY);
+  stroke(192, 192, 192);
+  strokeWeight(7);
+  strokeCap(ROUND);
+  fill(230,230,230);
+  quad(posX+100 - width*50, posY+5, posX+100 + width*50, posY+5, posX+110 + width*50, posY+25, posX+110 - width*50, posY+25);
+  line(posX + 100 - width * 50, posY+5, posX + 100 + width * 50, posY+5);
+  line(posX + 110 - width * 50, posY+25, posX + 110 + width * 50, posY+25);
+  line(posX + 100 - width * 50, posY+5, posX+110-width*50, posY+25);
+  line(posX + 100 + width * 50, posY+5, posX+110+width*50, posY+25);
   noStroke();
 }
 
-let xPos = 0; //rocket position in x direction
+let xPos = 300; //rocket position in x direction
 let yPos = 0; //rocket position in y direction
 let mass = 1; //Mass of rocket
 let xVelocity = 0; //Velocity of rocket in x direction
@@ -110,11 +114,11 @@ let angle = 0; //Angle of rocket
 let fuel = 1000; //Fuel of rocket
 let platformWidth = 1; //Standard width of landing platform
 let platformPosX = 0;
-let platformPosY = 395;
+let platformPosY = 400;
 let state = "start";
 let win = false;
 let score = 0;
-
+let bestScore = 0;
 let waves = [];
 
 function draw() {
@@ -129,24 +133,20 @@ function draw() {
     xPos = 0;
     yPos = 0;
   }
-
 }
 
 function mousePressed() {
   if (state == "start") {
     state = "play";
     platformPosX = platformX();
-    waves = [];
-    for (let i = 0; i < 7; i++) {
-      waves.push(spawnWaves());
-    }
+    
   } else if (state == "end" && win == true) {
     state = "play";
     platformPosX = platformX();
-  }
-  else if (state == "end" && win == false) {
+  } else if (state == "end" && win == false) {
     state = "start";
-    
+    //reset highscore
+    bestScore = 0;
   }
   waves = [];
   for (let i = 0; i < 10; i++) {
@@ -157,14 +157,18 @@ function mousePressed() {
 function startScreen() {
   noStroke();
   spawnScenery();
+  
   textFont("Courier New", 40);
   textStyle(BOLD);
   textAlign(CENTER, BOTTOM);
-  text("SpaceZ Ocean Lander", x, y);
+  text("SpaceZ Ocean Lander", x, y-200);
   textSize(20);
   textStyle(NORMAL);
   textAlign(CENTER, TOP);
-  text("Press mouse to start", x, y);
+  text("Press mouse to start", x, y-200);
+  textStyle(ITALIC);
+  text("(Space Key) - Engage Thrust", x, y-160);
+  text("(Left/Right Arrow Keys) - Steer", x, y-140);
 }
 
 function playScreen() {
@@ -172,22 +176,21 @@ function playScreen() {
   spawnScenery();
   spawnPlatform();
   textSize(20);
+  textStyle(NORMAL);
+  fill(24, 107, 131);
   text("Score: " + score, 50, 50);
   text("Fuel: " + fuel, 50, 70);
-  text("Angle: " + angle, 50, 90);
-  text("Velocity: " + yVelocity, 50, 110);
-  text("xpos: " + xPos, 50, 130);
-  text("platform:" + platformPosX + " " + platformWidth,50,150);
-
+  text("Velocity: " + int(yVelocity*10) + " m/s", 50, 90);
+  
   textAlign(LEFT);
   rocket(xPos, yPos, angle, thrust);
-
   //Rocketcontrollers & Physics
   //Thrust
   if (keyIsDown(32)) {
     //When spacebar is pressed thrust is accelerated
-    fuel = fuel - 1;
+    
     if (fuel > 0) {
+      fuel = fuel - 1;
       thrust = 0.5;
     }
   } else {
@@ -203,16 +206,16 @@ function playScreen() {
   }
 
   upforce = thrust * mass; //Force acting upwards
-  downforce = -g;
-  //Force acting downwards
-  yVelocity = yVelocity + upforce * Math.cos(angle) + 0.07 * downforce; //Total velocity on rocket
+  downforce = -g; //Force acting downwards
+  
+  yVelocity = yVelocity + upforce * Math.cos(angle) + 0.07 * downforce; //Velocity in y direction
   xVelocity = xVelocity + upforce * Math.sin(angle); //Velocity in x direction
 
   yPos = yPos - yVelocity;
   xPos = xPos + xVelocity;
 
   //landing
-  if (yPos > 289) {
+  if (yPos > 300) {
     if (
       xPos < platformPosX + platformWidth * 100 &&
       xPos > platformPosX - platformWidth * 100 &&
@@ -240,59 +243,59 @@ function playScreen() {
   if (xPos < -200) {
     xPos = windowWidth;
   }
-  //Out of fuel
-  if (fuel < 0) {
-    win = false;
-    state = "end";
-    endScreen(win);
-  }
 }
-function resultScreen(){
+function resultScreen() {
   spawnScenery();
   if (win == true) {
     textFont("Courier New", 40);
     textStyle(BOLD);
-    textAlign(CENTER, BOTTOM);
-    text("Landing was a success!", x, y);
-    console.log("Landed");
+  textAlign(CENTER, BOTTOM);
+  text("Landing was a success!", x, y-200);
+  textSize(20);
+  textStyle(NORMAL);
+  textAlign(CENTER, TOP);
+  text("Press mouse to keep playing", x, y-150);
+    bestScore = score;
   }
   if (win == false) {
     textFont("Courier New", 40);
     textStyle(BOLD);
     textAlign(CENTER, BOTTOM);
-    text("Landing was a failure!", x, y);
-    console.log("Crashed");
-}}
+  text("Landing was a failure!", x, y-200);
+  textSize(20);
+  textStyle(NORMAL);
+  textAlign(CENTER, TOP);
+  text("Score: " + bestScore, x, y -200);
+    textSize(20);
+    
+    text("Press mouse to restart", x, y-150);
+    
+  }
+}
 function endScreen() {
   //Succesful landing
   if (win == true) {
-    
     score = score + 1;
     fuel = int(fuel * 0.9);
-    platformWidth = platformWidth * 0.9;
+    platformWidth = platformWidth * 0.95;
   }
 
   //Failed Landing
   if (win == false) {
-    textFont("Courier New", 40);
-    textStyle(BOLD);
-    textAlign(CENTER, BOTTOM);
-    text("Landing was a failure!", x, y);
-    console.log("Crashed");
-    score = 0;
     fuel = 1000;
     platformWidth = 1;
+    score = 0;
   }
 }
 
 //Randomizes each wave spawnposition
 function spawnWaves() {
   const waveX = Math.random() * 2000;
-  const waveY = 430 + Math.random() * 70;
-  const waveLength = 30 + Math.random()*100;
-  return { x: waveX, y: waveY, length: waveLength};
+  const waveY = 430 + Math.random() * 300;
+  const waveLength = 30 + Math.random() * 100;
+  return { x: waveX, y: waveY, length: waveLength };
 }
-
+//Draws the waves
 function drawWaves(wave) {
   push();
   strokeWeight(4);
@@ -301,6 +304,7 @@ function drawWaves(wave) {
   stroke(255, 255, 255);
   pop();
 }
+//Animates each wave
 function updateWaves(wave) {
   wave.x = wave.x + 1;
   if (wave.x > windowWidth + 100) {
@@ -310,20 +314,26 @@ function updateWaves(wave) {
 
 function spawnScenery() {
   background(229, 210, 221);
-  fill(255,255,255);
-  ellipse(50,400,200);
-  ellipse(180,420,180);
-  ellipse(110,380,180);
+  fill(255, 255, 255);
 
-  ellipse(700,400,250);
-  ellipse(540,420,180);
-  ellipse(590,380,150);
-  ellipse(850,430,250);
-  
-  fill(255,150,90);
-  ellipse(500,400,200);
+  //Clouds
+  ellipse(50, 400, 200);
+  ellipse(180, 420, 180);
+  ellipse(110, 380, 180);
+  ellipse(250, 400, 170);
+  ellipse(400, 400, 300);
+  ellipse(440, 420, 180);
+  ellipse(490, 380, 150);
+  ellipse(650, 430, 250);
+  ellipse(x+300,400,230);
+  ellipse(x+420,420,180);
+  ellipse(x+160,400,140);
+  ellipse(x+700,400,270);
+  ellipse(x+550,450,200);
+  fill(255, 150, 90);
+  ellipse(x, 400, 200);
   fill(24, 107, 131);
-  rect(0, 400, windowWidth, 100);
+  rect(0, 400, windowWidth, 600);
 
   for (let wave of waves) {
     updateWaves(wave);
@@ -335,6 +345,6 @@ function spawnPlatform() {
   landingPad(platformPosX, platformPosY, platformWidth);
 }
 function platformX() {
-  let platformX = Math.floor(Math.random() * 1500);
+  let platformX = Math.floor(Math.random() * (windowWidth - 200));
   return platformX;
 }
