@@ -6,6 +6,7 @@ function setup() {
   frameRate(30);
 }
 
+//x1 and y1 is the position of the rocket, thrust is only used to determine if the rocket emits fire or not
 function rocket(x1, y1, angle, thrust) {
   translate(x1, y1);
   push();
@@ -89,15 +90,23 @@ function rocket(x1, y1, angle, thrust) {
 }
 
 function landingPad(posX, posY, width) {
-  stroke(192, 192, 192);
+  stroke(255, 255, 0);
   strokeWeight(7);
-  strokeCap(ROUND);
-  fill(230,230,230);
-  quad(posX+100 - width*50, posY+5, posX+100 + width*50, posY+5, posX+110 + width*50, posY+25, posX+110 - width*50, posY+25);
-  line(posX + 100 - width * 50, posY+5, posX + 100 + width * 50, posY+5);
-  line(posX + 110 - width * 50, posY+25, posX + 110 + width * 50, posY+25);
-  line(posX + 100 - width * 50, posY+5, posX+110-width*50, posY+25);
-  line(posX + 100 + width * 50, posY+5, posX+110+width*50, posY+25);
+  fill(200, 200, 200);
+  quad(
+    posX + 100 - width * 50,
+    posY + 5,
+    posX + 100 + width * 50,
+    posY + 5,
+    posX + 110 + width * 50,
+    posY + 25,
+    posX + 110 - width * 50,
+    posY + 25
+  );
+  line(posX + 100 - width * 50, posY + 5, posX + 100 + width * 50, posY + 5);
+  line(posX + 110 - width * 50, posY + 25, posX + 110 + width * 50, posY + 25);
+  line(posX + 100 - width * 50, posY + 5, posX + 110 - width * 50, posY + 25);
+  line(posX + 100 + width * 50, posY + 5, posX + 110 + width * 50, posY + 25);
   noStroke();
 }
 
@@ -118,7 +127,7 @@ let platformPosY = 400;
 let state = "start";
 let win = false;
 let score = 0;
-let bestScore = 0;
+let bestScore = 0; //Used to store how far the player got in the game
 let waves = [];
 
 function draw() {
@@ -139,7 +148,6 @@ function mousePressed() {
   if (state == "start") {
     state = "play";
     platformPosX = platformX();
-    
   } else if (state == "end" && win == true) {
     state = "play";
     platformPosX = platformX();
@@ -148,8 +156,9 @@ function mousePressed() {
     //reset highscore
     bestScore = 0;
   }
+  //empty wave array and spawn new waves
   waves = [];
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < 13; i++) {
     waves.push(spawnWaves());
   }
 }
@@ -157,22 +166,20 @@ function mousePressed() {
 function startScreen() {
   noStroke();
   spawnScenery();
-  
   textFont("Courier New", 40);
   textStyle(BOLD);
   textAlign(CENTER, BOTTOM);
-  text("SpaceZ Ocean Lander", x, y-200);
+  text("SpaceZ Ocean Lander", x, y - 200);
   textSize(20);
   textStyle(NORMAL);
   textAlign(CENTER, TOP);
-  text("Press mouse to start", x, y-200);
+  text("Press mouse to start", x, y - 200);
   textStyle(ITALIC);
-  text("(Space Key) - Engage Thrust", x, y-160);
-  text("(Left/Right Arrow Keys) - Steer", x, y-140);
+  text("(Space Key) - Engage Thrust", x, y - 160);
+  text("(Left/Right Arrow Keys) - Steer", x, y - 140);
 }
 
 function playScreen() {
-  clear();
   spawnScenery();
   spawnPlatform();
   textSize(20);
@@ -180,21 +187,21 @@ function playScreen() {
   fill(24, 107, 131);
   text("Score: " + score, 50, 50);
   text("Fuel: " + fuel, 50, 70);
-  text("Velocity: " + int(yVelocity*10) + " m/s", 50, 90);
-  
+  text("Velocity: " + int(yVelocity * 10) + " m/s", 50, 90);
   textAlign(LEFT);
   rocket(xPos, yPos, angle, thrust);
+
   //Rocketcontrollers & Physics
+
   //Thrust
   if (keyIsDown(32)) {
-    //When spacebar is pressed thrust is accelerated
-    
+    //When spacebar is pressed thrust is "engaged" accelerated
     if (fuel > 0) {
       fuel = fuel - 1;
       thrust = 0.5;
     }
   } else {
-    thrust = 0; //When spacebar is not pressed thrust is not accelerated
+    thrust = 0; //When spacebar is not pressed thrust is not engaged
   }
   //Rotation
   if (keyIsDown(LEFT_ARROW)) {
@@ -204,10 +211,12 @@ function playScreen() {
     //When right arrow is pressed rocket rotates right
     angle = angle + (Math.PI / 180) * 4;
   }
+  //Physics loosely based on: https://www.spaceacademy.net.au/flight/sim/lunasim.htm and previous projects
 
   upforce = thrust * mass; //Force acting upwards
   downforce = -g; //Force acting downwards
-  
+
+  //Forces combined with the angles are used to calculate the velocity in x and y direction
   yVelocity = yVelocity + upforce * Math.cos(angle) + 0.07 * downforce; //Velocity in y direction
   xVelocity = xVelocity + upforce * Math.sin(angle); //Velocity in x direction
 
@@ -249,27 +258,25 @@ function resultScreen() {
   if (win == true) {
     textFont("Courier New", 40);
     textStyle(BOLD);
-  textAlign(CENTER, BOTTOM);
-  text("Landing was a success!", x, y-200);
-  textSize(20);
-  textStyle(NORMAL);
-  textAlign(CENTER, TOP);
-  text("Press mouse to keep playing", x, y-150);
+    textAlign(CENTER, BOTTOM);
+    text("Landing was a success!", x, y - 200);
+    textSize(20);
+    textStyle(NORMAL);
+    textAlign(CENTER, TOP);
+    text("Press mouse to keep playing", x, y - 150);
     bestScore = score;
   }
   if (win == false) {
     textFont("Courier New", 40);
     textStyle(BOLD);
     textAlign(CENTER, BOTTOM);
-  text("Landing was a failure!", x, y-200);
-  textSize(20);
-  textStyle(NORMAL);
-  textAlign(CENTER, TOP);
-  text("Score: " + bestScore, x, y -200);
+    text("Landing was a failure!", x, y - 200);
     textSize(20);
-    
-    text("Press mouse to restart", x, y-150);
-    
+    textStyle(NORMAL);
+    textAlign(CENTER, TOP);
+    text("Score: " + bestScore, x, y - 200);
+    textSize(20);
+    text("Press mouse to restart", x, y - 150);
   }
 }
 function endScreen() {
@@ -288,14 +295,15 @@ function endScreen() {
   }
 }
 
-//Randomizes each wave spawnposition
+//Randomizes each waves position and length
 function spawnWaves() {
   const waveX = Math.random() * 2000;
   const waveY = 430 + Math.random() * 300;
   const waveLength = 30 + Math.random() * 100;
   return { x: waveX, y: waveY, length: waveLength };
 }
-//Draws the waves
+
+//Draws the waves based on their position and length
 function drawWaves(wave) {
   push();
   strokeWeight(4);
@@ -304,6 +312,7 @@ function drawWaves(wave) {
   stroke(255, 255, 255);
   pop();
 }
+
 //Animates each wave
 function updateWaves(wave) {
   wave.x = wave.x + 1;
@@ -314,7 +323,7 @@ function updateWaves(wave) {
 
 function spawnScenery() {
   background(229, 210, 221);
-  fill(255, 255, 255);
+  fill(245, 225, 235);
 
   //Clouds
   ellipse(50, 400, 200);
@@ -325,16 +334,17 @@ function spawnScenery() {
   ellipse(440, 420, 180);
   ellipse(490, 380, 150);
   ellipse(650, 430, 250);
-  ellipse(x+300,400,230);
-  ellipse(x+420,420,180);
-  ellipse(x+160,400,140);
-  ellipse(x+700,400,270);
-  ellipse(x+550,450,200);
+  ellipse(x + 300, 400, 230);
+  ellipse(x + 420, 420, 180);
+  ellipse(x + 160, 400, 140);
+  ellipse(x + 700, 400, 270);
+  ellipse(x + 550, 450, 200);
   fill(255, 150, 90);
   ellipse(x, 400, 200);
   fill(24, 107, 131);
   rect(0, 400, windowWidth, 600);
 
+  //Draws each wave
   for (let wave of waves) {
     updateWaves(wave);
     drawWaves(wave);
@@ -344,6 +354,7 @@ function spawnScenery() {
 function spawnPlatform() {
   landingPad(platformPosX, platformPosY, platformWidth);
 }
+//Randomize platform x position
 function platformX() {
   let platformX = Math.floor(Math.random() * (windowWidth - 200));
   return platformX;
